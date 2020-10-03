@@ -30,14 +30,15 @@ using namespace vex;
 // A global instance of competition
 competition Competition;
 
+// Creating robot class to keep track of robot values
 class robot {
 
   public:
 
-    motor D1;
-    motor D2;
-    motor D3;
-    motor D4;
+    motor D1 = Drive1;
+    motor D2 = Drive2;
+    motor D3 = Drive3;
+    motor D4 = Drive4;
     
     float x_accl;
     float y_accl;
@@ -54,8 +55,7 @@ class robot {
     int D1D3Brake_counter;
     int D2D4Brake_counter;
 
-};
-
+  };
 
 void pre_auton(void) {
 
@@ -68,13 +68,11 @@ void autonomous(void) {
 
 void usercontrol(void) {
 
+  // Define bob to keep track of values for the robot
+  // Bob definition start----------------------------------------------------
   robot bob;
 
-  bob.D1 = Drive1;
-  bob.D2 = Drive2;
-  bob.D3 = Drive3;
-  bob.D4 = Drive4;
-
+  // Define current acceleration and rotation for the robot
   bob.x_accl = 0;
   bob.y_accl = 0;
   bob.z_accl = 0;
@@ -82,32 +80,41 @@ void usercontrol(void) {
   bob.y_rot = 0;
   bob.z_rot = 0;
   
+  // Setting motor values for the robot
   bob.D1_value = 0;
   bob.D2_value = 0;
   bob.D3_value = 0;
   bob.D4_value = 0;
-
+  
+  // Initializing brake counters
   bob.D1D3Brake_counter = 0;
   bob.D2D4Brake_counter = 0;
+  // Bob definition end-------------------------------------------------------
 
   // User control code here, inside the loop
   while (1) {
     
+    // Set motor values for forward and backward motion
     bob.D1_value = Controller1.Axis3.position();
     bob.D2_value = Controller1.Axis3.position();
     bob.D3_value = -Controller1.Axis4.position();
     bob.D4_value = -Controller1.Axis4.position();
 
+    // Add turning into motor values
     bob.D1_value = bob.D1_value + Controller1.Axis1.position();
     bob.D2_value = bob.D2_value + Controller1.Axis1.position();
     bob.D3_value = bob.D3_value + Controller1.Axis1.position();
     bob.D4_value = bob.D4_value + Controller1.Axis1.position();
 
+    // Move wheels
     bob.D1.spin(vex::directionType::fwd, bob.D1_value, vex::velocityUnits::pct);
     bob.D2.spin(vex::directionType::fwd, bob.D2_value, vex::velocityUnits::pct);
     bob.D3.spin(vex::directionType::fwd, bob.D3_value, vex::velocityUnits::pct);
     bob.D4.spin(vex::directionType::fwd, bob.D4_value, vex::velocityUnits::pct);
 
+    // Brakes to apply motor brakes for a short period of time after the user stops moving the robot
+    // to avoid drifting
+    // Brake start---------------------------------------------------------------
     if (Controller1.Axis3.position() != 0) {
 
       bob.D1D3Brake_counter = 0;
@@ -145,6 +152,7 @@ void usercontrol(void) {
       }
 
     }
+    // Brake funtions end--------------------------------------------------------
 
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
