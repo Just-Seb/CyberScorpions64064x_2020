@@ -51,6 +51,10 @@ class robot {
     float y_vel = 0.0f;
     float z_vel = 0.0f;
 
+    float x_distance = 0.0f;
+    float y_distance = 0.0f;
+    float z_distance = 0.0f;
+
     int D1_value;
     int D2_value;
     int D3_value;
@@ -93,6 +97,8 @@ class robot {
     time_since_last = time_since_last - vex::timer::systemHighResolution();
 
     x_vel += x_accl / time_since_last;
+
+    x_distance = x_vel * time_since_last;
 
     time_since_last = vex::timer::systemHighResolution();
 
