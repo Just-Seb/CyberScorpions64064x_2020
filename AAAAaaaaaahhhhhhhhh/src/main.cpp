@@ -59,6 +59,10 @@ class robot {
     int D1D3Brake_counter;
     int D2D4Brake_counter;
 
+    float time_since_last;
+    float average_accl;
+    float accls;
+
     bool stationary;
 
   // Function to update the current values for the inertial sensor
@@ -78,11 +82,24 @@ class robot {
 
   }
 
-  // void calculateVelocity() {
+  void calculateVelocity() {
 
-  //   x_vel = 
+    // for (int u = 0; u < len(accls); u ++) {
 
-  // }
+
+
+    // }
+
+    time_since_last = time_since_last - vex::timer::systemHighResolution();
+
+    x_vel += x_accl / time_since_last;
+
+    time_since_last = vex::timer::systemHighResolution();
+
+    Brain.Screen.setCursor(5, 3);
+    Brain.Screen.print("Distance Forward: ", x_vel);
+
+  }
 
 };
 
@@ -188,6 +205,7 @@ void usercontrol(void) {
 
     // Update functions start-----------------------------------------------------
     bob.updateInertial();
+    bob.calculateVelocity();
     // Update functions end-------------------------------------------------------
 
     wait(20, msec); // Sleep the task for a short amount of time to
