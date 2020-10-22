@@ -103,7 +103,7 @@ class robot {
     time_since_last = vex::timer::systemHighResolution();
 
     Brain.Screen.setCursor(5, 3);
-    Brain.Screen.print("Distance Forward: ", x_vel);
+    Brain.Screen.print("Distance Forward: ", x_distance);
 
   }
 
