@@ -47,6 +47,10 @@ class robot {
     float y_rot;
     float z_rot;
 
+    float x_vel = 0.0f;
+    float y_vel = 0.0f;
+    float z_vel = 0.0f;
+
     int D1_value;
     int D2_value;
     int D3_value;
@@ -55,7 +59,32 @@ class robot {
     int D1D3Brake_counter;
     int D2D4Brake_counter;
 
-  };
+    bool stationary;
+
+  // Function to update the current values for the inertial sensor
+  void updateInertial() {
+
+    x_accl = Inertial.acceleration(axisType::xaxis);
+    y_accl = Inertial.acceleration(axisType::yaxis);
+    z_accl = Inertial.acceleration(axisType::zaxis);
+
+    y_rot = Inertial.orientation(orientationType::yaw, rotationUnits::deg);
+
+    Brain.Screen.setCursor(3, 3);
+    Brain.Screen.print("Y accl: ", y_accl);
+
+    Brain.Screen.setCursor(4, 3);
+    Brain.Screen.print("Z accl: ", z_accl);
+
+  }
+
+  // void calculateVelocity() {
+
+  //   x_vel = 
+
+  // }
+
+};
 
 void pre_auton(void) {
 
@@ -89,6 +118,9 @@ void usercontrol(void) {
   // Initializing brake counters
   bob.D1D3Brake_counter = 0;
   bob.D2D4Brake_counter = 0;
+
+  // Initilize stationary counter
+  bob.stationary = true;
   // Bob definition end-------------------------------------------------------
 
   // User control code here, inside the loop
@@ -96,9 +128,9 @@ void usercontrol(void) {
     
     // Set motor values for forward and backward motion
     bob.D1_value = Controller1.Axis3.position();
-    bob.D2_value = Controller1.Axis3.position();
+    bob.D2_value = -Controller1.Axis3.position();
     bob.D3_value = -Controller1.Axis4.position();
-    bob.D4_value = -Controller1.Axis4.position();
+    bob.D4_value = Controller1.Axis4.position();
 
     // Add turning into motor values
     bob.D1_value = bob.D1_value + Controller1.Axis1.position();
@@ -152,7 +184,11 @@ void usercontrol(void) {
       }
 
     }
-    // Brake funtions end--------------------------------------------------------
+    // Brake functions end--------------------------------------------------------
+
+    // Update functions start-----------------------------------------------------
+    bob.updateInertial();
+    // Update functions end-------------------------------------------------------
 
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
