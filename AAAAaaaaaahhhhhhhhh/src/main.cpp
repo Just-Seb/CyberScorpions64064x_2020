@@ -3,7 +3,7 @@
 /*    Module:       main.cpp                                                  */
 /*    Author:       Sebastian Scurtescu                                       */
 /*    Created:      Oct 2, 2020                                               */
-/*    Description:  64064x's code for BOB                                     */
+/*    Description:  64064x's code for BOB Use this version                    */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
