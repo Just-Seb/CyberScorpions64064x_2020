@@ -63,7 +63,7 @@ class robot {
     int D1D3Brake_counter;
     int D2D4Brake_counter;
 
-    float time_since_last;
+    float time_last = vex::timer::systemHighResolution();
     float average_accl;
     float accls;
 
@@ -94,13 +94,15 @@ class robot {
 
     // }
 
-    time_since_last = time_since_last - vex::timer::systemHighResolution();
+    float time_now = vex::timer::systemHighResolution();
+
+    float time_since_last = time_now - time_last;
 
     x_vel += x_accl / time_since_last;
 
     x_distance = x_vel * time_since_last;
 
-    time_since_last = vex::timer::systemHighResolution();
+    time_last = vex::timer::systemHighResolution();
 
     Brain.Screen.setCursor(5, 3);
     Brain.Screen.print("Distance Forward: ", x_distance);
