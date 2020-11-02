@@ -17,7 +17,7 @@
 // Drive4               motor         4               
 // In1                  motor         5               
 // In2                  motor         6               
-// Launch1              motor         7               
+// Tower                motor         7               
 // Launch2              motor         8               
 // Controller1          controller                    
 // Controller2          controller                    
@@ -39,6 +39,8 @@ class robot {
     motor D2 = Drive2;
     motor D3 = Drive3;
     motor D4 = Drive4;
+
+    motor T1 = Tower;
     
     float x_accl;
     float y_accl;
@@ -47,9 +49,16 @@ class robot {
     float y_rot;
     float z_rot;
 
+    float x_offset = 0.09f;
+    float y_offset = 0.09f;
+
     float x_vel = 0.0f;
     float y_vel = 0.0f;
     float z_vel = 0.0f;
+
+    float x_vel_n = 0.0f;
+    float y_vel_n = 0.0f;
+    float z_vel_n = 0.0f;
 
     float x_distance = 0.0f;
     float y_distance = 0.0f;
@@ -59,6 +68,8 @@ class robot {
     int D2_value;
     int D3_value;
     int D4_value;
+
+    int Tower_value;
 
     int D1D3Brake_counter;
     int D2D4Brake_counter;
@@ -79,13 +90,22 @@ class robot {
     y_rot = Inertial.orientation(orientationType::yaw, rotationUnits::deg);
 
     Brain.Screen.setCursor(3, 3);
-    Brain.Screen.print("Y accl: ", y_accl);
+    Brain.Screen.print("Y accl: %f", y_accl);
 
     Brain.Screen.setCursor(4, 3);
-    Brain.Screen.print("Z accl: ", z_accl);
+    Brain.Screen.print("X accl: %f", x_accl);
 
   }
 
+  // Function for zeroing out interial sensor on the go
+  void zeroInertial() {
+
+    x_offset = Inertial.acceleration(axisType::xaxis);
+    y_offset = Inertial.acceleration(axisType::yaxis);
+    
+  }
+
+  // Function to calculate and update our current position of the robot
   void calculateVelocity() {
 
     // for (int u = 0; u < len(accls); u ++) {
@@ -98,33 +118,83 @@ class robot {
 
     float time_since_last = time_now - time_last;
 
-    x_vel += x_accl / time_since_last;
+    x_accl = Inertial.acceleration(axisType::xaxis);
+    y_accl = Inertial.acceleration(axisType::yaxis);
+    z_accl = Inertial.acceleration(axisType::zaxis);
 
-    x_distance = x_vel * time_since_last;
+    if (x_accl > x_offset or x_accl < -x_offset) {
+
+      x_vel_n = x_vel;
+
+      x_vel = x_vel + (((x_accl - x_offset) / 9.806) * (time_since_last / 10000000));
+
+      x_distance += ((x_vel * x_vel) - x_vel_n) / (2 * (x_accl - x_offset));
+
+    }
+
+    if (y_accl > y_offset or y_accl < -y_offset) {
+
+      y_vel_n = y_vel;
+
+      y_vel = y_vel + (((y_accl - y_offset) / 9.806) * (time_since_last / 10000000));
+
+      y_distance += ((y_vel * y_vel) - y_vel_n) / (2 * (y_accl - y_offset));
+
+    }
+
+    // (vsquared - vnotsqaured) / 2a = d
+
+    // vsquared = vnotsquared + 2ad
 
     time_last = vex::timer::systemHighResolution();
 
     Brain.Screen.setCursor(5, 3);
-    Brain.Screen.print("Distance Forward: ", x_distance);
+    Brain.Screen.print("Distance X: %f", x_distance);
+
+    Brain.Screen.setCursor(6, 3);
+    Brain.Screen.print("Distance Y: %f", y_distance);
+
+    Brain.Screen.setCursor(7, 3);
+    Brain.Screen.print("(x,y) coors: (%f, %f)", y_distance, y_distance);
+
+    Brain.Screen.setCursor(8, 3);
+    Brain.Screen.print("X velocity: %f", x_vel);
+
+    Brain.Screen.setCursor(9, 3);
+    Brain.Screen.print("Y velocity: %f", y_vel);
+
+    x_vel = 0;
+
 
   }
 
 };
 
+robot bob;
+
 void pre_auton(void) {
 
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+  // Inertial.calibrate();
+  Brain.Screen.setCursor(1, 1);
+  Brain.Screen.print("got here");
 }
 
 void autonomous(void) {
+}
+
+void buttonPressed() {
+
+  bob.zeroInertial();
+
 }
 
 void usercontrol(void) {
 
   // Define bob to keep track of values for the robot
   // Bob definition start----------------------------------------------------
-  robot bob;
+  // robot bob;
 
   // Define current acceleration and rotation for the robot
   bob.x_accl = 0;
@@ -150,6 +220,9 @@ void usercontrol(void) {
 
   // User control code here, inside the loop
   while (1) {
+
+    // Deal with button presses for special functions for the controller
+    Controller1.ButtonA.pressed(buttonPressed);
     
     // Set motor values for forward and backward motion
     bob.D1_value = Controller1.Axis3.position();
@@ -163,11 +236,16 @@ void usercontrol(void) {
     bob.D3_value = bob.D3_value + Controller1.Axis1.position();
     bob.D4_value = bob.D4_value + Controller1.Axis1.position();
 
-    // Move wheels
+    // Set tower motor values
+    bob.Tower_value = -Controller1.Axis2.position();
+
+    // Move wheels and tower motors
     bob.D1.spin(vex::directionType::fwd, bob.D1_value, vex::velocityUnits::pct);
     bob.D2.spin(vex::directionType::fwd, bob.D2_value, vex::velocityUnits::pct);
     bob.D3.spin(vex::directionType::fwd, bob.D3_value, vex::velocityUnits::pct);
     bob.D4.spin(vex::directionType::fwd, bob.D4_value, vex::velocityUnits::pct);
+
+    bob.T1.spin(vex::directionType::fwd, bob.Tower_value, vex::velocityUnits::pct);
 
     // Brakes to apply motor brakes for a short period of time after the user stops moving the robot
     // to avoid drifting
@@ -212,7 +290,7 @@ void usercontrol(void) {
     // Brake functions end--------------------------------------------------------
 
     // Update functions start-----------------------------------------------------
-    bob.updateInertial();
+    // bob.updateInertial();
     bob.calculateVelocity();
     // Update functions end-------------------------------------------------------
 

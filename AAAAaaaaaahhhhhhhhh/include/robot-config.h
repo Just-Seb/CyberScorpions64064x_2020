@@ -10,7 +10,7 @@ extern motor Drive3;
 extern motor Drive4;
 extern motor In1;
 extern motor In2;
-extern motor Launch1;
+extern motor Tower;
 extern motor Launch2;
 extern controller Controller1;
 extern controller Controller2;
