@@ -283,6 +283,8 @@ void controls(robot bob) {
 
         }
         // Brake functions end--------------------------------------------------------
+
+        vex::task::sleep(25);
     }
 }
 
@@ -315,7 +317,7 @@ void usercontrol(void) {
   // Bob definition end-------------------------------------------------------
 
   // Start Tasks----------------------------------------------------------------
-  vex::Task controls (controls(bob));
+  vex::Task controls(controls(bob));
   // End Tasks------------------------------------------------------------------
 
   // User control code here, inside the loop
