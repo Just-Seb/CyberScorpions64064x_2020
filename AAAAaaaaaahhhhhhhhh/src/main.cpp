@@ -10,17 +10,17 @@
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // Robot Configuration:
 // [Name]               [Type]        [Port(s)]
-// Inertial             inertial      9               
-// Drive1               motor         1               
-// Drive2               motor         2               
-// Drive3               motor         3               
-// Drive4               motor         4               
-// In1                  motor         5               
-// In2                  motor         6               
-// Tower                motor         7               
-// Launch2              motor         8               
-// Controller1          controller                    
-// Controller2          controller                    
+// Inertial             inertial      9
+// Drive1               motor         1
+// Drive2               motor         2
+// Drive3               motor         3
+// Drive4               motor         4
+// In1                  motor         5
+// In2                  motor         6
+// Tower                motor         7
+// Launch2              motor         8
+// Controller1          controller
+// Controller2          controller
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
@@ -41,7 +41,10 @@ class robot {
     motor D4 = Drive4;
 
     motor T1 = Tower;
-    
+
+    motor I1 = In1;
+    motor I2 = In2;
+
     float x_accl;
     float y_accl;
     float z_accl;
@@ -70,6 +73,8 @@ class robot {
     int D4_value;
 
     int Tower_value;
+    int RGrip_value;
+    int LGrip_value;
 
     int D1D3Brake_counter;
     int D2D4Brake_counter;
@@ -102,7 +107,7 @@ class robot {
 
     x_offset = Inertial.acceleration(axisType::xaxis);
     y_offset = Inertial.acceleration(axisType::yaxis);
-    
+
   }
 
   // Function to calculate and update our current position of the robot
@@ -213,13 +218,13 @@ void usercontrol(void) {
   bob.x_rot = 0;
   bob.y_rot = 0;
   bob.z_rot = 0;
-  
+
   // Setting motor values for the robot
   bob.D1_value = 0;
   bob.D2_value = 0;
   bob.D3_value = 0;
   bob.D4_value = 0;
-  
+
   // Initializing brake counters
   bob.D1D3Brake_counter = 0;
   bob.D2D4Brake_counter = 0;
@@ -234,11 +239,11 @@ void usercontrol(void) {
     // Deal with button presses for special functions for the controller
     if (Controller1.ButtonA.pressed()) {
 
-	bob.zeroInertial();
-	Controller1.Screen.setCursor(1, 1);
+    	bob.zeroInertial();
+    	Controller1.Screen.setCursor(1, 1);
 
     }
-    
+
     // Set motor values for forward and backward motion
     bob.D1_value = Controller1.Axis3.position();
     bob.D2_value = -Controller1.Axis3.position();
@@ -251,8 +256,16 @@ void usercontrol(void) {
     bob.D3_value = bob.D3_value + Controller1.Axis1.position();
     bob.D4_value = bob.D4_value + Controller1.Axis1.position();
 
-    // Set tower motor values
-    bob.Tower_value = -Controller1.Axis2.position();
+    // Set tower and gripper motor values
+    bob.Tower_value = -Controller2.Axis1.position();
+    bob.RGrip_value = Controller2.Axis2.position();
+    bob.LGrip_value = Controller2.Axis4.position();
+
+    if (Controller1.ButtonB.pressed()) {
+
+        bob.RGrip_value = 100;
+
+    };
 
     // Move wheels and tower motors
     bob.D1.spin(vex::directionType::fwd, bob.D1_value, vex::velocityUnits::pct);
@@ -261,6 +274,8 @@ void usercontrol(void) {
     bob.D4.spin(vex::directionType::fwd, bob.D4_value, vex::velocityUnits::pct);
 
     bob.T1.spin(vex::directionType::fwd, bob.Tower_value, vex::velocityUnits::pct);
+    bob.I1.spin(vex::directionType::fwd, bob.RGrip_value, vex::velocityUnits::pct);
+    bob.I2.spin(vex::directionType::fwd, bob.LGrip_value, vex::velocityUnits::pct);
 
     // Brakes to apply motor brakes for a short period of time after the user stops moving the robot
     // to avoid drifting
@@ -317,7 +332,7 @@ void usercontrol(void) {
 int main() {
   Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
-  
+
   pre_auton();
 
   // Prevent main from exiting with an infinite loop.
