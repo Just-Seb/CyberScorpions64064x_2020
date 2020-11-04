@@ -150,18 +150,28 @@ class robot {
 
     Brain.Screen.setCursor(5, 3);
     Brain.Screen.print("Distance X: %f", x_distance);
+    Controller1.Screen.setCursor(2, 1);
+    Controller1.Screen.print("Distance X: %f", x_distance);
 
     Brain.Screen.setCursor(6, 3);
     Brain.Screen.print("Distance Y: %f", y_distance);
+    Controller1.Screen.setCursor(3, 1);
+    Controller1.Screen.print("Distance Y: %f", y_distance);
 
     Brain.Screen.setCursor(7, 3);
-    Brain.Screen.print("(x,y) coors: (%f, %f)", y_distance, y_distance);
+    Brain.Screen.print("(x,y) coors: (%f,%f)", x_distance, y_distance);
+    Controller1.Screen.setCursor(4, 1);
+    Controller1.Screen.print("(x,y) coors: (%f,%f)", x_distance, y_distance);
 
     Brain.Screen.setCursor(8, 3);
     Brain.Screen.print("X velocity: %f", x_vel);
+    Controller1.Screen.setCursor(5, 1);
+    Controller1.Screen.print("X vel: %f", x_vel);
 
     Brain.Screen.setCursor(9, 3);
     Brain.Screen.print("Y velocity: %f", y_vel);
+    Controller1.Screen.setCursor(6, 1);
+    Controller1.Screen.print("Y vel: %f", y_vel);
 
     x_vel = 0;
 
@@ -170,7 +180,7 @@ class robot {
 
 };
 
-robot bob;
+//robot bob;
 
 void pre_auton(void) {
 
@@ -194,7 +204,7 @@ void usercontrol(void) {
 
   // Define bob to keep track of values for the robot
   // Bob definition start----------------------------------------------------
-  // robot bob;
+  robot bob;
 
   // Define current acceleration and rotation for the robot
   bob.x_accl = 0;
@@ -222,7 +232,12 @@ void usercontrol(void) {
   while (1) {
 
     // Deal with button presses for special functions for the controller
-    Controller1.ButtonA.pressed(buttonPressed);
+    if (Controller1.ButtonA.pressed()) {
+
+	bob.zeroInertial();
+	Controller1.Screen.setCursor(1, 1);
+
+    }
     
     // Set motor values for forward and backward motion
     bob.D1_value = Controller1.Axis3.position();
