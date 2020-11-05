@@ -80,3 +80,11 @@ int controlCallback() {
 
   return 0;
 }
+
+int positioningCallback() {
+
+  bob.calculateVelocity();
+
+  return 0;
+
+}

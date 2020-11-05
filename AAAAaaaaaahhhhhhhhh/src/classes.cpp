@@ -112,23 +112,6 @@ class robot {
 
     }
 
-  // Function to update the current values for the inertial sensor
-  void updateInertial() {
-
-    x_accl = Inertial.acceleration(axisType::xaxis);
-    y_accl = Inertial.acceleration(axisType::yaxis);
-    z_accl = Inertial.acceleration(axisType::zaxis);
-
-    y_rot = Inertial.orientation(orientationType::yaw, rotationUnits::deg);
-
-    Brain.Screen.setCursor(3, 3);
-    Brain.Screen.print("Y accl: ", y_accl);
-
-    Brain.Screen.setCursor(4, 3);
-    Brain.Screen.print("Z accl: ", z_accl);
-
-  }
-
   // Function for zeroing out interial sensor on the go
   void zeroInertial() {
 
@@ -198,6 +181,12 @@ class robot {
     Brain.Screen.print("Y velocity: %f", y_vel);
     Controller1.Screen.setCursor(6, 1);
     Controller1.Screen.print("Y vel: %f", y_vel);
+
+    Brain.Screen.setCursor(3, 3);
+    Brain.Screen.print("Y accl: ", y_accl);
+
+    Brain.Screen.setCursor(4, 3);
+    Brain.Screen.print("Z accl: ", z_accl);
 
     x_vel = 0;
 

@@ -60,7 +60,6 @@ class robot {
   float time_last;
 
   robot();
-  void updateInertial();
   void calculateVelocity();
   void zeroInertial();
 

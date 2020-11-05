@@ -46,15 +46,14 @@ void autonomous(void) {
 
 void usercontrol(void) {
 
-  // Start Tasks----------------------------------------------------------------
+  // Start Tasks that run indefinitly----------------------------------------------------------------
   task control = task(controlCallback);
-  // End Tasks------------------------------------------------------------------
-  
-  bob.updateInertial();
-  bob.calculateVelocity();
+  // End Tasks that run indefinitly------------------------------------------------------------------
 
   // User control code here, inside the loop
   while (1) {
+
+    task positioning = task(positioningCallback);
 
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
