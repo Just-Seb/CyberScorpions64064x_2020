@@ -1,3 +1,12 @@
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*    Module:       classes.cpp                                               */
+/*    Author:       Sebastian Scurtescu                                       */
+/*    Created:      Nov 5, 2020                                               */
+/*    Description:  64064x's classes for BOB                                  */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+
 #include "vex.h"
 
 using namespace vex;
@@ -195,3 +204,5 @@ class robot {
   }
 
 };
+
+robot bob;

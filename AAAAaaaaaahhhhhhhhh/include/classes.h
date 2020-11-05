@@ -1,3 +1,12 @@
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*    Module:       classes.h                                                 */
+/*    Author:       Sebastian Scurtescu                                       */
+/*    Created:      Nov 5, 2020                                               */
+/*    Description:  64064x's header file for classes.cpp                      */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+
 #include "vex.h"
 
 class robot {
@@ -56,3 +65,5 @@ class robot {
   void zeroInertial();
 
 };
+
+extern robot bob;
