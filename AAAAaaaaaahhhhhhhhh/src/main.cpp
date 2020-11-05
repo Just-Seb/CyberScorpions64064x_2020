@@ -3,7 +3,7 @@
 /*    Module:       main.cpp                                                  */
 /*    Author:       Sebastian Scurtescu                                       */
 /*    Created:      Oct 2, 2020                                               */
-/*    Description:  64064x's code for BOB Use this version                    */
+/*    Description:  64064x's code for BOB                                     */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -52,16 +52,12 @@ class robot {
     float y_rot;
     float z_rot;
 
-    float x_offset = 0.09f;
-    float y_offset = 0.09f;
-
     float x_vel = 0.0f;
     float y_vel = 0.0f;
     float z_vel = 0.0f;
 
-    float x_vel_n = 0.0f;
-    float y_vel_n = 0.0f;
-    float z_vel_n = 0.0f;
+    float y_offset = 0.0f;
+    float x_offset = 0.0f;
 
     float x_distance = 0.0f;
     float y_distance = 0.0f;
@@ -95,10 +91,10 @@ class robot {
     y_rot = Inertial.orientation(orientationType::yaw, rotationUnits::deg);
 
     Brain.Screen.setCursor(3, 3);
-    Brain.Screen.print("Y accl: %f", y_accl);
+    Brain.Screen.print("Y accl: ", y_accl);
 
     Brain.Screen.setCursor(4, 3);
-    Brain.Screen.print("X accl: %f", x_accl);
+    Brain.Screen.print("Z accl: ", z_accl);
 
   }
 
@@ -123,33 +119,9 @@ class robot {
 
     float time_since_last = time_now - time_last;
 
-    x_accl = Inertial.acceleration(axisType::xaxis);
-    y_accl = Inertial.acceleration(axisType::yaxis);
-    z_accl = Inertial.acceleration(axisType::zaxis);
+    x_vel += x_accl / time_since_last;
 
-    if (x_accl > x_offset or x_accl < -x_offset) {
-
-      x_vel_n = x_vel;
-
-      x_vel = x_vel + (((x_accl - x_offset) / 9.806) * (time_since_last / 10000000));
-
-      x_distance += ((x_vel * x_vel) - x_vel_n) / (2 * (x_accl - x_offset));
-
-    }
-
-    if (y_accl > y_offset or y_accl < -y_offset) {
-
-      y_vel_n = y_vel;
-
-      y_vel = y_vel + (((y_accl - y_offset) / 9.806) * (time_since_last / 10000000));
-
-      y_distance += ((y_vel * y_vel) - y_vel_n) / (2 * (y_accl - y_offset));
-
-    }
-
-    // (vsquared - vnotsqaured) / 2a = d
-
-    // vsquared = vnotsquared + 2ad
+    x_distance = x_vel * time_since_last;
 
     time_last = vex::timer::systemHighResolution();
 
@@ -185,27 +157,50 @@ class robot {
 
 };
 
-//robot bob;
+robot bob;
+
 
 void pre_auton(void) {
 
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  // Inertial.calibrate();
-  Brain.Screen.setCursor(1, 1);
-  Brain.Screen.print("got here");
 }
 
 void autonomous(void) {
 }
 
-void buttonPressed() {
+// void buttonPressed() {
 
-  bob.zeroInertial();
+//   bob.zeroInertial();
 
-}
+// }
 
-void controls(robot bob) {
+int controlCallback() {
+  // Define bob to keep track of values for the robot
+  // Bob definition start----------------------------------------------------
+  // robot bob;
+
+  // Define current acceleration and rotation for the robot
+  bob.x_accl = 0;
+  bob.y_accl = 0;
+  bob.z_accl = 0;
+  bob.x_rot = 0;
+  bob.y_rot = 0;
+  bob.z_rot = 0;
+
+  // Setting motor values for the robot
+  bob.D1_value = 0;
+  bob.D2_value = 0;
+  bob.D3_value = 0;
+  bob.D4_value = 0;
+
+  // Initializing brake counters
+  bob.D1D3Brake_counter = 0;
+  bob.D2D4Brake_counter = 0;
+
+  // Initilize stationary counter
+  bob.stationary = true;
+  // Bob definition end-------------------------------------------------------
 
     while (1) {
 
@@ -226,11 +221,11 @@ void controls(robot bob) {
         bob.RGrip_value = Controller2.Axis2.position();
         bob.LGrip_value = Controller2.Axis4.position();
 
-        if (Controller1.ButtonB.pressed()) {
+        // if (Controller1.ButtonB.pressed()) {
 
-            bob.RGrip_value = 100;
+        //     bob.RGrip_value = 100;
 
-        };
+        // };
 
         // Move wheels and tower motors
         bob.D1.spin(vex::directionType::fwd, bob.D1_value, vex::velocityUnits::pct);
@@ -286,130 +281,21 @@ void controls(robot bob) {
 
         vex::task::sleep(25);
     }
+
+  return 0;
 }
 
 void usercontrol(void) {
 
-  // Define bob to keep track of values for the robot
-  // Bob definition start----------------------------------------------------
-  robot bob;
-
-  // Define current acceleration and rotation for the robot
-  bob.x_accl = 0;
-  bob.y_accl = 0;
-  bob.z_accl = 0;
-  bob.x_rot = 0;
-  bob.y_rot = 0;
-  bob.z_rot = 0;
-
-  // Setting motor values for the robot
-  bob.D1_value = 0;
-  bob.D2_value = 0;
-  bob.D3_value = 0;
-  bob.D4_value = 0;
-
-  // Initializing brake counters
-  bob.D1D3Brake_counter = 0;
-  bob.D2D4Brake_counter = 0;
-
-  // Initilize stationary counter
-  bob.stationary = true;
-  // Bob definition end-------------------------------------------------------
-
   // Start Tasks----------------------------------------------------------------
-  vex::Task controls(controls(bob));
+  task control = task(controlCallback);
   // End Tasks------------------------------------------------------------------
+  
+  bob.updateInertial();
+  bob.calculateVelocity();
 
   // User control code here, inside the loop
   while (1) {
-
-    // Deal with button presses for special functions for the controller
-    if (Controller1.ButtonA.pressed()) {
-
-    	bob.zeroInertial();
-    	Controller1.Screen.setCursor(1, 1);
-
-    }
-
-    // // Set motor values for forward and backward motion
-    // bob.D1_value = Controller1.Axis3.position();
-    // bob.D2_value = -Controller1.Axis3.position();
-    // bob.D3_value = -Controller1.Axis4.position();
-    // bob.D4_value = Controller1.Axis4.position();
-    //
-    // // Add turning into motor values
-    // bob.D1_value = bob.D1_value + Controller1.Axis1.position();
-    // bob.D2_value = bob.D2_value + Controller1.Axis1.position();
-    // bob.D3_value = bob.D3_value + Controller1.Axis1.position();
-    // bob.D4_value = bob.D4_value + Controller1.Axis1.position();
-    //
-    // // Set tower and gripper motor values
-    // bob.Tower_value = -Controller2.Axis1.position();
-    // bob.RGrip_value = Controller2.Axis2.position();
-    // bob.LGrip_value = Controller2.Axis4.position();
-    //
-    // if (Controller1.ButtonB.pressed()) {
-    //
-    //     bob.RGrip_value = 100;
-    //
-    // };
-    //
-    // // Move wheels and tower motors
-    // bob.D1.spin(vex::directionType::fwd, bob.D1_value, vex::velocityUnits::pct);
-    // bob.D2.spin(vex::directionType::fwd, bob.D2_value, vex::velocityUnits::pct);
-    // bob.D3.spin(vex::directionType::fwd, bob.D3_value, vex::velocityUnits::pct);
-    // bob.D4.spin(vex::directionType::fwd, bob.D4_value, vex::velocityUnits::pct);
-    //
-    // bob.T1.spin(vex::directionType::fwd, bob.Tower_value, vex::velocityUnits::pct);
-    // bob.I1.spin(vex::directionType::fwd, bob.RGrip_value, vex::velocityUnits::pct);
-    // bob.I2.spin(vex::directionType::fwd, bob.LGrip_value, vex::velocityUnits::pct);
-    //
-    // // Brakes to apply motor brakes for a short period of time after the user stops moving the robot
-    // // to avoid drifting
-    // // Brake start---------------------------------------------------------------
-    // if (Controller1.Axis3.position() != 0) {
-    //
-    //   bob.D1D3Brake_counter = 0;
-    //
-    // }
-    //
-    // if (Controller1.Axis3.position() == 0) {
-    //
-    //   while (bob.D1D3Brake_counter <= 30) {
-    //
-    //     bob.D1.setBrake(brakeType::brake);
-    //     bob.D3.setBrake(brakeType::brake);
-    //
-    //     bob.D1D3Brake_counter++;
-    //
-    //   }
-    //
-    // }
-    //
-    // if (Controller1.Axis4.position() != 0) {
-    //
-    //   bob.D2D4Brake_counter = 0;
-    //
-    // }
-    //
-    // if (Controller1.Axis4.position() == 0) {
-    //
-    //   while (bob.D2D4Brake_counter <= 30) {
-    //
-    //     bob.D2.setBrake(brakeType::brake);
-    //     bob.D4.setBrake(brakeType::brake);
-    //
-    //     bob.D2D4Brake_counter++;
-    //
-    //   }
-    //
-    // }
-    // // Brake functions end--------------------------------------------------------
-
-    // Update functions start-----------------------------------------------------
-    // bob.updateInertial();
-    bob.calculateVelocity();
-    // Update functions end-------------------------------------------------------
 
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
@@ -419,6 +305,9 @@ void usercontrol(void) {
 int main() {
   Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
+  //   // Start Tasks----------------------------------------------------------------
+  // vex::task controls(controls);
+  // // End Tasks------------------------------------------------------------------
 
   pre_auton();
 
