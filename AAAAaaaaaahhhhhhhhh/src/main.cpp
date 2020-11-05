@@ -56,6 +56,10 @@ class robot {
     float y_vel = 0.0f;
     float z_vel = 0.0f;
 
+    float x_vel_n = 0.0f;
+    float y_vel_n = 0.0f;
+    float z_vel_n = 0.0f;
+
     float y_offset = 0.0f;
     float x_offset = 0.0f;
 
@@ -109,19 +113,37 @@ class robot {
   // Function to calculate and update our current position of the robot
   void calculateVelocity() {
 
-    // for (int u = 0; u < len(accls); u ++) {
-
-
-
-    // }
-
     float time_now = vex::timer::systemHighResolution();
 
     float time_since_last = time_now - time_last;
 
-    x_vel += x_accl / time_since_last;
+    x_accl = Inertial.acceleration(axisType::xaxis);
+    y_accl = Inertial.acceleration(axisType::yaxis);
+    z_accl = Inertial.acceleration(axisType::zaxis);
 
-    x_distance = x_vel * time_since_last;
+    if (x_accl > x_offset or x_accl < -x_offset) {
+
+      x_vel_n = x_vel;
+
+      x_vel = x_vel + (((x_accl - x_offset) / 9.806) * (time_since_last / 10000000));
+
+      x_distance += ((x_vel * x_vel) - x_vel_n) / (2 * (x_accl - x_offset));
+
+    }
+
+    if (y_accl > y_offset or y_accl < -y_offset) {
+
+      y_vel_n = y_vel;
+
+      y_vel = y_vel + (((y_accl - y_offset) / 9.806) * (time_since_last / 10000000));
+
+      y_distance += ((y_vel * y_vel) - y_vel_n) / (2 * (y_accl - y_offset));
+
+    }
+
+    // (vsquared - vnotsqaured) / 2a = d
+
+    // vsquared = vnotsquared + 2ad
 
     time_last = vex::timer::systemHighResolution();
 
@@ -152,7 +174,6 @@ class robot {
 
     x_vel = 0;
 
-
   }
 
 };
@@ -178,7 +199,6 @@ void autonomous(void) {
 int controlCallback() {
   // Define bob to keep track of values for the robot
   // Bob definition start----------------------------------------------------
-  // robot bob;
 
   // Define current acceleration and rotation for the robot
   bob.x_accl = 0;
