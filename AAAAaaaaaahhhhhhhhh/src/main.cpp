@@ -52,20 +52,20 @@ class robot {
     float y_rot;
     float z_rot;
 
-    float x_vel = 0.0f;
-    float y_vel = 0.0f;
-    float z_vel = 0.0f;
+    float x_vel;
+    float y_vel;
+    float z_vel;
 
-    float x_vel_n = 0.0f;
-    float y_vel_n = 0.0f;
-    float z_vel_n = 0.0f;
+    float x_vel_n;
+    float y_vel_n;
+    float z_vel_n;
 
-    float y_offset = 0.0f;
-    float x_offset = 0.0f;
+    float y_offset;
+    float x_offset;
 
-    float x_distance = 0.0f;
-    float y_distance = 0.0f;
-    float z_distance = 0.0f;
+    float x_distance;
+    float y_distance;
+    float z_distance;
 
     int D1_value;
     int D2_value;
@@ -79,11 +79,57 @@ class robot {
     int D1D3Brake_counter;
     int D2D4Brake_counter;
 
-    float time_last = vex::timer::systemHighResolution();
-    float average_accl;
-    float accls;
+    float time_last;
 
-    bool stationary;
+    robot() {
+
+      D1 = Drive1;
+      D2 = Drive2;
+      D3 = Drive3;
+      D4 = Drive4;
+
+      T1 = Tower;
+
+      I1 = In1;
+      I2 = In2;
+
+      x_accl = 0.0f;
+      y_accl = 0.0f;
+      z_accl = 0.0f;
+      x_rot = 0.0f;
+      y_rot = 0.0f;
+      z_rot = 0.0f;
+
+      x_vel = 0.0f;
+      y_vel = 0.0f;
+      z_vel = 0.0f;
+
+      x_vel_n = 0.0f;
+      y_vel_n = 0.0f;
+      z_vel_n = 0.0f;
+
+      y_offset = 0.0f;
+      x_offset = 0.0f;
+
+      x_distance = 0.0f;
+      y_distance = 0.0f;
+      z_distance = 0.0f;
+
+      D1_value = 0;
+      D2_value = 0;
+      D3_value = 0;
+      D4_value = 0;
+
+      Tower_value = 0;
+      RGrip_value = 0;
+      LGrip_value = 0;
+
+      D1D3Brake_counter = 0;
+      D2D4Brake_counter = 0;
+
+      time_last = vex::timer::systemHighResolution();
+
+    }
 
   // Function to update the current values for the inertial sensor
   void updateInertial() {
@@ -199,7 +245,7 @@ void autonomous(void) {
 int controlCallback() {
   // Define bob to keep track of values for the robot
   // Bob definition start----------------------------------------------------
-
+  // robot bob;
   // Define current acceleration and rotation for the robot
   bob.x_accl = 0;
   bob.y_accl = 0;
@@ -217,9 +263,6 @@ int controlCallback() {
   // Initializing brake counters
   bob.D1D3Brake_counter = 0;
   bob.D2D4Brake_counter = 0;
-
-  // Initilize stationary counter
-  bob.stationary = true;
   // Bob definition end-------------------------------------------------------
 
     while (1) {
@@ -298,6 +341,7 @@ int controlCallback() {
 
         }
         // Brake functions end--------------------------------------------------------
+        bob.calculateVelocity();
 
         vex::task::sleep(25);
     }
